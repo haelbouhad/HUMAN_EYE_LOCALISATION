@@ -31,6 +31,7 @@ class Filter {
         CImg<double> GaussianKernel(double = 1.0);
         int GetAngle(int, int);
         CImg<unsigned char> CannyEdges(CImg<float>, double, double, bool = false);
+         CImg<unsigned char> modified_hough_cercles(CImg<unsigned char>, int);
         CImg<unsigned char> hough_cercles(CImg<unsigned char>, int);
         CImg<unsigned char> hough_creer_cercles(CImg<unsigned char>, float, int);
         void compute();

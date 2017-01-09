@@ -145,18 +145,37 @@ CImg<unsigned char> Filter::CannyEdges(CImg<float> im, double T1, double T2, boo
   return edges;
 }
 
+CImg<unsigned char> Filter::modified_hough_cercles(CImg<unsigned char> img, int rayon1){
+  CImg<float> angle = CImg<float>(img.width(), img.height());
+  for (int a = 0; a < img.width(); a++)
+    for (int b = 0; b < img.height(); b++)
+        if (img(a, b) != 0)
+          angle(a,b) = std::atan2((double)dy,(double)dx);
+}
+
 CImg<unsigned char> Filter::hough_cercles(CImg<unsigned char> img, int rayon1)
 {
+  // 
+  CImgList<float> grad = im.get_gradient("xy",1);
   CImg<unsigned char> tab_cercles = CImg<unsigned char>(img.width(), img.height());
+  CImg<float> angles = CImg<float>(img.width(), img.height());
+  
   tab_cercles.fill(0);
   pixels = new tab_pix[img.width()*img.height()];
   int cpt, ray_cur;
 
   rayon1 *= rayon1;
 
+
+
   for (int i = 0; i < img.width(); i++)
     for (int j = 0; j < img.height(); j++)
       pixels[i+j*img.width()].val = 0;
+
+  /*Step 1*/
+  for (int i = 0; i < img.width(); i++)
+    for (int j = 0; j < img.height(); j++)
+         angle(i,j) = std::atan2((double)grad[1](i,j),(double)grad[0](i,j));
 
   for (int a = 0; a < img.width(); a++)
     for (int b = 0; b < img.height(); b++)
@@ -164,11 +183,14 @@ CImg<unsigned char> Filter::hough_cercles(CImg<unsigned char> img, int rayon1)
       {
         for (int i = 0; i < img.width(); i++)
 	 				for (int j = 0; j < img.height(); j++)
+           //if (img(i, j) != 0)
           {
+
             ray_cur = (i-a)*(i-a) + (j-b)*(j-b);
 
             cpt = i+j*img.width();
-            if (ray_cur >= rayon1-50 && ray_cur <= rayon1+50 && pixels[cpt].val < 255)
+           // if (ray_cur >= rayon1-50 && ray_cur <= rayon1+50 && pixels[cpt].val < 255)
+           if (ray_cur >= rayon1-2 && ray_cur <= rayon1+2 /*&& pixels[cpt].val < 255*/)
             {
               pixels[cpt].val++;
               pixels[cpt].x = i;
