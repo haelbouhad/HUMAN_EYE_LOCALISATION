@@ -145,18 +145,91 @@ CImg<unsigned char> Filter::CannyEdges(CImg<float> im, double T1, double T2, boo
   return edges;
 }
 
-CImg<unsigned char> Filter::modified_hough_cercles(CImg<unsigned char> img, int rayon1){
-  CImg<float> angle = CImg<float>(img.width(), img.height());
+CImg<unsigned char> Filter::modified_hough_cercles(CImg<unsigned char> img, int rayon1, int rayon2){
+  CImgList<float> grad = img.get_gradient("xy",1);
+  CImg<float> angles   = CImg<float>(img.width(), img.height());
+  CImg<unsigned char> tab_cercles = CImg<unsigned char>(img.width(), img.height());
+  
+  angles = grad[1].get_atan2(grad[0]); // Compute atan2(y,x) for each pixel value.
+  int rayonpsi[2], cpt;
+  pixels = new tab_pix[img.width()*img.height()];
+  pixels->A = new float[rayon2 - rayon1];
+  int count = 0;
+  
   for (int a = 0; a < img.width(); a++)
-    for (int b = 0; b < img.height(); b++)
-        if (img(a, b) != 0)
-          angle(a,b) = std::atan2((double)dy,(double)dx);
+  for (int b = 0; b < img.height(); b++)
+    if (img(a, b) != 0)
+    {
+        for (int i = max(0,a-rayon2); i < min(a+rayon2, img.width()); i++)
+	 				for (int j = max(0,b-rayon2); j < min(b+rayon2, img.height()); j++){
+             for(int k = -1; k <= 1; k = k+2 ){
+                count++;
+                rayonpsi[0] = (i - a)/cos( k*M_PI/2 + angles(a,b));
+                rayonpsi[1] = (j - b)/sin( k*M_PI/2 + angles(a,b));
+                if( rayonpsi[0] == rayonpsi[1] && rayon1 <= rayonpsi[0] && rayonpsi[0] <= rayon2){
+                  cpt = i+j*img.width();
+                  pixels[cpt].val++;
+                  pixels[cpt].x = i;
+                  pixels[cpt].y = j;
+                  pixels[cpt].r = rayonpsi[0];
+                }
+             }
+
+          }
+
+    }
+
+    qsort(pixels, img.width()*img.height(), sizeof(tab_pix), (int (*)(const void*, const void*))comparator);
+
+    std::cout << "COUNT = " << count << std::endl;
+    std::cout << "MAX   = " << pixels[0].x << " - " <<  pixels[0].y << " - " << pixels[0].r << std::endl;
+    std::cout << "MAX   = " << pixels[1].x << " - " <<  pixels[1].y << " - " << pixels[1].r << std::endl;
+    std::cout << "MAX   = " << pixels[2].x << " - " <<  pixels[2].y << " - " << pixels[2].r << std::endl;
+
+    int seuil = 10;
+    int ray_cur;
+    for (int s = 0; s < (int)seuil; s++)
+		  for (int i = 0; i < img.width(); i++)
+  			for (int j = 0; j < img.height(); j++)
+  			{
+            ray_cur = (i-pixels[s].x)*(i-pixels[s].x) + (j-pixels[s].y)*(j-pixels[s].y);
+            if (ray_cur >= rayon1 && ray_cur <= rayon2)
+            {
+              cpt = i+j*img.width();
+							pixels[cpt].A[ray_cur]++;
+            }
+  			}
+
+
+
+    for (int i = 0; i < img.width(); i++)
+    for (int j = 0; j < img.height(); j++)
+			tab_cercles(i,j) = pixels[i+j*img.width()].val;
+
+	return tab_cercles;
+}
+
+CImg<float> Filter::modified_hough_cercles2(CImg<unsigned char> img, int rayon1, int rayon2){
+  CImgList<float> grad = img.get_gradient("xy",1);
+  CImg<float> angles   = CImg<float>(img.width(), img.height());
+
+  for (int i = 0; i < img.width(); i++)
+    for (int j = 0; j < img.height(); j++)
+         angles(i,j) = std::atan2((double)grad[1](i,j),(double)grad[0](i,j));
+  
+  /* Step 2 */
+  /*pixels = new tab_pix[img.width()*img.height()];
+  for (int i = 0; i < img.width(); i++)
+    for (int j = 0; j < img.height(); j++)
+      pixels[i+j*img.width()].val = 0;*/
+
+  return angles;
 }
 
 CImg<unsigned char> Filter::hough_cercles(CImg<unsigned char> img, int rayon1)
 {
   // 
-  CImgList<float> grad = im.get_gradient("xy",1);
+  CImgList<float> grad = img.get_gradient("xy",1);
   CImg<unsigned char> tab_cercles = CImg<unsigned char>(img.width(), img.height());
   CImg<float> angles = CImg<float>(img.width(), img.height());
   
@@ -166,16 +239,10 @@ CImg<unsigned char> Filter::hough_cercles(CImg<unsigned char> img, int rayon1)
 
   rayon1 *= rayon1;
 
-
-
   for (int i = 0; i < img.width(); i++)
     for (int j = 0; j < img.height(); j++)
       pixels[i+j*img.width()].val = 0;
 
-  /*Step 1*/
-  for (int i = 0; i < img.width(); i++)
-    for (int j = 0; j < img.height(); j++)
-         angle(i,j) = std::atan2((double)grad[1](i,j),(double)grad[0](i,j));
 
   for (int a = 0; a < img.width(); a++)
     for (int b = 0; b < img.height(); b++)
@@ -261,14 +328,18 @@ void Filter::compute(){
     CImgDisplay canny(im_canny, "Image apres Canny"); 
 
     std::cout << " \n 3. Hough Transform " << std::endl;
-    std::cout << "    > Insert Number of circles (NC)  : "; std::cin >> numberCircle;
-    std::cout << "    > Insert radius value : "; std::cin >> radius;
-    CImg<unsigned char> im_hough = hough_cercles(im_canny, radius);
+    /*std::cout << "    > Insert Number of circles (NC)  : "; std::cin >> numberCircle;
+    std::cout << "    > Insert radius value : "; std::cin >> radius;*/
+    CImg<float> im_hough = modified_hough_cercles(im_canny);
     CImgDisplay hough_fct(im_hough, "Image resultante de Hough");
 
-    im_hough = hough_creer_cercles(im_hough, numberCircle, radius);
-    CImgDisplay hough_cercles(im_hough, "Image de cercles");
+    /*CImg<float> im_hough2 = modified_hough_cercles2(im_canny);
+    CImgDisplay hough2_fct(im_hough2, "Image 2 resultante de Hough");*/
+
+   /* im_hough = hough_creer_cercles(im_hough, numberCircle, radius);
+    CImgDisplay hough_cercles(im_hough, "Image de cercles");*/
     
+
 
     while(!input.is_closed()){
         input.wait();
@@ -279,4 +350,12 @@ void Filter::compute(){
 int comparator(const tab_pix* a, const tab_pix* b)
 {
 	return ((*b).val - (*a).val);
+}
+
+int max(int a, int b){
+  return ( a >= b ? a : b);
+}
+
+int min(int a, int b){
+  return ( a >= b ? b : a);
 }
