@@ -13,37 +13,6 @@ Filter::~Filter() {
     delete pixels;
 }
 
-CImg<double> Filter::GaussianKernel(double sigma)
-{
-  CImg<double> resultIm(5,5,1,1,0);
-  int midX = 3, midY = 3;
-  cimg_forXY(resultIm,X,Y) {
-    resultIm(X,Y) = std::ceil(256.0*(std::exp(-(midX*midX + midY*midY)/(2*sigma*sigma)))/(2*cimg::PI*sigma*sigma));
-  }
-  return resultIm;
-}
-
-
-CImg<float> Filter::GaussianBlur(CImg<unsigned char> im,double sigma)
-{
-  CImg<float> smoothIm(im.width(),im.height(),1,1,0);
-
-  //make gaussian kernel
-  CImg<float> gk = GaussianKernel(sigma);
-  //apply gaussian
-
-  CImg_5x5(I,int);
-  cimg_for5x5(im,X,Y,0,0,I,int) {
-    float sum = 0;
-    sum += gk(0,0)*Ibb + gk(0,1)*Ibp + gk(0,2)*Ibc + gk(0,3)*Ibn + gk(0,4)*Iba;
-    sum += gk(1,0)*Ipb + gk(1,1)*Ipp + gk(1,2)*Ipc + gk(1,3)*Ipn + gk(1,4)*Ipa;
-    sum += gk(2,0)*Icb + gk(2,1)*Icp + gk(2,2)*Icc + gk(2,3)*Icn + gk(2,4)*Ica;
-    sum += gk(3,0)*Inb + gk(3,1)*Inp + gk(3,2)*Inc + gk(3,3)*Inn + gk(3,4)*Ina;
-    sum += gk(4,0)*Iab + gk(4,1)*Iap + gk(4,2)*Iac + gk(4,3)*Ian + gk(4,4)*Iaa;
-    smoothIm(X,Y) = sum/256;
-  }
-  return smoothIm;
-}
 
 int Filter::GetAngle(int dy,int dx)
 {
@@ -318,8 +287,11 @@ void Filter::compute(){
     std::cout << "\n 1. Gaussian blur " << std::endl;
     std::cout << "    > Insert sigma value (gaussian equation parameter) : " ;
     std::cin >> sigma;
-    CImg<float> im_gauss = GaussianBlur(image,4);
+
+    CImg<float> im_gauss = image.get_RGBtoYCbCr().get_channel(0);
+    im_gauss.blur(sigma);
     CImgDisplay gauss(im_gauss, "Image apres le filtre gaussien");
+    
 
     std::cout << " \n 2. Canny Edge detection method (with hysteresis) using thresholds T1 and T2 " << std::endl;
     std::cout << "    > Insert T1 value (lower threshold) : "; std::cin >> lowerThreshold;

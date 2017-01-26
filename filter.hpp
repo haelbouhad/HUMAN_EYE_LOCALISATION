@@ -31,8 +31,6 @@ class Filter {
         Filter();
         Filter(std::string);
         ~Filter();
-        CImg<float> GaussianBlur(CImg<unsigned char>,double);
-        CImg<double> GaussianKernel(double = 1.0);
         int GetAngle(int, int);
         CImg<unsigned char> CannyEdges(CImg<float>, double, double, bool = false);
          CImg<unsigned char> modified_hough_cercles(CImg<unsigned char>, int = 10, int = 50);
