@@ -1,11 +1,9 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html lang="#LANG">
+<html lang="fr">
 <head>
 
-        
-	
   <title>#Projet d'Imagerie</title>
-  <meta http-equiv="Content-Type" content="text/html; charset=#CHARSET">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 
 	
   <link rel="stylesheet" href="./style.css" type="text/css">
@@ -17,43 +15,48 @@
   <meta name="Description" content="compte rendu de projet de TP">
 </head>
 
-  <body>
-<h1>
-  
-  
-  TITRE DE VOTRE PROJET</h1>
-<h3>VOS NOMS, VOTRE PROMOTION</h3>
-<h1 class="titrearticle"> Pr&eacute;sentation du sujet </h1>
+<body>
+  <h1>
+    Sujet 6 - Human eye localization using the modified Hough transform
+  </h1>
+  <h3>ELBOUHADI Hassan & TRAORE Ousmane</h3>
+  <h1 class="titrearticle"> Présentation du sujet </h1>
 
-On rappelle ici le sujet du projet, la r&eacute;f&eacute;rence de l'article et l'objectif du travail<br>
+  L'objectif du projet est d'implementer une méthode de détection des yeux et des paupières dans une image de face. <br/>
+  La méthode utilisée, décrite dans l'article [1], utilise la transformée de Hough modifiée pour cela. <br>
 
-<h1 class="titrearticle"> M&eacute;thode</h1>
+  <h1 class="titrearticle"> Méthode</h1>
+  Tout d'abord, l'image doit avoir la bonne taille pour que les yeux soient detectable.<br/>
+  La methode de detection est décrire comme suite  :
+  <ul>
+    <li>Filtrage Gaussien de l'image pour réduire les bruits</li>
+    <li>Détection des contours avec la méthode de Canny avec seuillage par hysteresis.</li>
+    <li>Détection des yeux et des paupières avec la transformée de hough modifiée</li>
+  </ul>
+  <h2 class="soustitrearticle"> Partie théorique</h2>
 
- 
-<h2 class="soustitrearticle"> Partie th&eacute;orique</h2>
+  Présentation de la méthode utilisée et référence aux travaux connexes (cf. biblio article)<br>
 
- Pr&eacute;sentation de la m&eacute;thode utilis&eacute;e et r&eacute;f&eacute;rence aux travaux connexes (cf. biblio article)<br>
+  <h2 class="soustitrearticle"> Implémentation</h2>
 
-<h2 class="soustitrearticle"> Impl&eacute;mentation</h2>
+  <h1 class="titrearticle"> Résultats</h1>
 
-D&eacute;tails de l'impl&eacute;mentation (sous CImg)
-<h1 class="titrearticle"> R&eacute;sultats</h1>
+  <h2 class="soustitrearticle"> Validation sur données de synthèse</h2>
 
-<h2 class="soustitrearticle"> Validation sur donn&eacute;es de synth&egrave;se</h2>
+  Vous devez créer des données de synthèse pour évaluer votre méthode<br>
 
-Vous devez cr&eacute;er des donn&eacute;es de synth&egrave;se pour &eacute;valuer votre m&eacute;thode<br>
+  <h2 class="soustitrearticle"> Données réelles</h2>
 
-<h2 class="soustitrearticle"> Donn&eacute;es r&eacute;elles</h2>
+  Une fois la méthode évaluée, vous appliquerez votre méthode sur des images réelles<br>
 
-Une fois la m&eacute;thode &eacute;valu&eacute;e, vous appliquerez votre m&eacute;thode sur des images r&eacute;elles<br>
+  <h1 class="titrearticle"> Discussion</h1>
 
-<h1 class="titrearticle"> Discussion</h1>
-
-Commentez vos r&eacute;sultats (d'un point de vue qualitatif <span style="font-weight: bold;">ET</span> quantitatif)<br>
+  Commentez vos résultats (d'un point de vue qualitatif <span style="font-weight: bold;">ET</span> quantitatif)<br>
 
 
-<h1 class="titrearticle"> R&eacute;f&eacute;rences</h1>
+  <h1 class="titrearticle"> Références</h1>
 
-Rappel des r&eacute;f&eacute;rences incontournables du sujet trait&eacute; dans l'article
+  [1] Human eye localization using the modified Hough transform, M. Dobeš , J. Martinek , D. Skoupil , Z. Dobešová , J. Pospı́šil, 2005 <br/>
+  [2] Canny's Edge Detector: Implementation, Canny's Edge Detector: Implementation, Sohaib Khan, October 2002
 </body>
 </html>
