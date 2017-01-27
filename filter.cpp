@@ -10,7 +10,7 @@ Filter::Filter(){
 Filter::Filter(string pfilename):filename(pfilename){}
 
 Filter::~Filter() {
-    delete pixels;
+    delete[] pixels;
 }
 
 
@@ -120,13 +120,15 @@ CImg<unsigned char> Filter::modified_hough_cercles(CImg<unsigned char> img, int 
   CImg<unsigned char> tab_cercles = CImg<unsigned char>(img.width(), img.height());
   
   angles = grad[1].get_atan2(grad[0]); // Compute atan2(y,x) for each pixel value.
-  //int rayonpsi[2];
+
   int cpt;
+
   // Define pixels
   pixels = new tab_pix[img.width()*img.height()];
   for (int i = 0; i < img.width(); i++)
     for (int j = 0; j < img.height(); j++)
       (pixels[i+j*img.width()].Acc).insert( pair<int,int>(0,0) );
+	  
   int count = 0;
   
   for (int a = 0; a < img.width(); a++)
@@ -201,7 +203,6 @@ CImg<unsigned char> Filter::modified_hough_cercles(CImg<unsigned char> img, int 
 
     // Eyelid detection
     int seuil2 = 2;
-	int count1 = 0;
 	int ray_eye, ray_eyelid;
     for(int s = 0 ; s < seuil2 ; s++){
       for(int other = seuil2; other < img.width()*img.height()/100; other++ ){
@@ -277,7 +278,7 @@ void Filter::applyBresenhamForEyeLid(CImg<unsigned char> &  img, tab_pix & pixel
 
 CImg<unsigned char> Filter::modified_hough_creer_cercles(CImg<unsigned char> img, float seuil)
 {
-    cout << "Call draw circles" << endl;
+
 	CImg<unsigned char> tab_cercles = CImg<unsigned char>(img.width(), img.height());
     tab_cercles.fill(0);
     
@@ -289,109 +290,27 @@ CImg<unsigned char> Filter::modified_hough_creer_cercles(CImg<unsigned char> img
 	return tab_cercles;
 }
 
-CImg<float> Filter::modified_hough_cercles2(CImg<unsigned char> img, int rayon1, int rayon2){
-  CImgList<float> grad = img.get_gradient("xy",1);
-  CImg<float> angles   = CImg<float>(img.width(), img.height());
-
-  return angles;
-}
-
-CImg<unsigned char> Filter::hough_cercles(CImg<unsigned char> img, int rayon1)
-{
-  // 
-  CImgList<float> grad = img.get_gradient("xy",1);
-  CImg<unsigned char> tab_cercles = CImg<unsigned char>(img.width(), img.height());
-  CImg<float> angles = CImg<float>(img.width(), img.height());
-  
-  tab_cercles.fill(0);
-  pixels = new tab_pix[img.width()*img.height()];
-  int cpt, ray_cur;
-
-  rayon1 *= rayon1;
-
-  for (int i = 0; i < img.width(); i++)
-    for (int j = 0; j < img.height(); j++)
-      pixels[i+j*img.width()].val = 0;
-
-
-  for (int a = 0; a < img.width(); a++)
-    for (int b = 0; b < img.height(); b++)
-      if (img(a, b) != 0)
-      {
-        for (int i = 0; i < img.width(); i++)
-	 				for (int j = 0; j < img.height(); j++)
-           //if (img(i, j) != 0)
-          {
-
-            ray_cur = (i-a)*(i-a) + (j-b)*(j-b);
-
-            cpt = i+j*img.width();
-           // if (ray_cur >= rayon1-50 && ray_cur <= rayon1+50 && pixels[cpt].val < 255)
-           if (ray_cur >= rayon1-2 && ray_cur <= rayon1+2 /*&& pixels[cpt].val < 255*/)
-            {
-              pixels[cpt].val++;
-              pixels[cpt].x = i;
-              pixels[cpt].y = j;
-			  pixels[cpt].r = rayon1;
-            }
-					/*	if (ray_cur >= ray2-50 && ray_cur <= ray2+50 && pixels[cpt].val < 255)
-            {
-              pixels[cpt].val++;
-              pixels[cpt].x = i;
-              pixels[cpt].y = j;
-							pixels[cpt].r = ray2;
-            }*/
-          }
-        }
-
-  for (int i = 0; i < img.width(); i++)
-    for (int j = 0; j < img.height(); j++)
-			tab_cercles(i,j) = pixels[i+j*img.width()].val;
-
-	return tab_cercles;
- // tab_cercles.save_jpeg("img/hough.jpg");
-}
-
-
-CImg<unsigned char> Filter::hough_creer_cercles(CImg<unsigned char> img, float seuil, int rayon1)
-{
-	CImg<unsigned char> tab_cercles = CImg<unsigned char>(img.width(), img.height());
-  tab_cercles.fill(0);
-  qsort(pixels, img.width()*img.height(), sizeof(tab_pix), (int (*)(const void*, const void*))comparator);
-  seuil = img.width()*img.height()*(float)seuil/100000;
-	rayon1 *= rayon1;
-
-	for (int s = 0; s < (int)seuil; s++)
-		for (int i = 0; i < img.width(); i++)
-			for (int j = 0; j < img.height(); j++)
-			{
-				if (pixels[s].r == rayon1 && (i-pixels[s].x)*(i-pixels[s].x)+(j-pixels[s].y)*(j-pixels[s].y) >= rayon1-100 && (i-pixels[s].x)*(i-pixels[s].x)+(j-pixels[s].y)*(j-pixels[s].y) <= rayon1+100)
-					tab_cercles(i, j) = 255;
-			/*	if (pixels[s].r == ray2 && (i-pixels[s].x)*(i-pixels[s].x)+(j-pixels[s].y)*(j-pixels[s].y) >= ray2-100 && (i-pixels[s].x)*(i-pixels[s].x)+(j-pixels[s].y)*(j-pixels[s].y) <= ray2+100)
-					tab_cercles(i, j) = 255;*/
-			}
-
-  cout << "debug..." << endl;
-
-	return tab_cercles;
-  //tab_cercles.save_jpeg("img/finale.jpg");
-}
-
 
 void Filter::compute(){
 
     CImg<unsigned char> image(filename.c_str());
     CImgDisplay input(image, "Image de depart");
 
-    std::cout << "\n\n **************** Welcome to HUMAN_EYE_LOCATION application ****************\n" << std::endl ;
+    std::cout << "\n\n **************** Welcome to HUMAN_EYE_LOCALISATION application ****************\n" << std::endl ;
 
     std::cout << "\n 1. Gaussian blur " << std::endl;
     std::cout << "    > Insert sigma value (gaussian equation parameter) : " ;
     std::cin >> sigma;
 
-    //CImg<float> im_gauss = image.get_RGBtoYCbCr().get_channel(0);
-    //im_gauss.blur(sigma);
-    CImg<float> im_gauss = image.get_blur(sigma);
+	int color = image.spectrum();
+	CImg<float> greyScale;
+	if(color == 3)
+		greyScale = image;//.get_RGBtoYCbCr().get_channel(0);
+	else
+		greyScale = image;
+
+
+    CImg<float>  im_gauss = greyScale.get_blur(sigma);
     CImgDisplay gauss(im_gauss, "Image apres le filtre gaussien");
     
 
@@ -402,14 +321,13 @@ void Filter::compute(){
     CImgDisplay canny(im_canny, "Image apres Canny"); 
 
     std::cout << " \n 3. Hough Transform " << std::endl;
-    /*std::cout << "    > Insert Number of circles (NC)  : "; std::cin >> numberCircle;
-    std::cout << "    > Insert radius value : "; std::cin >> radius;*/
-    CImg<float> im_hough = modified_hough_cercles(im_canny, 8, 12);
+    std::cout << "    > Insert Number of circles (NC)  : "; std::cin >> numberCircle;
+    std::cout << "    > Insert radius min value : "; std::cin >> radius_min;
+	std::cout << "    > Insert radius max value : "; std::cin >> radius_max;
+    CImg<float> im_hough = modified_hough_cercles(im_canny, radius_min, radius_max);
     CImgDisplay hough_fct(im_hough, "Image resultante de Hough");
 
-    int seuil;
-    std::cout << "    > Insert seuil value : "; std::cin >> seuil;
-    im_hough = modified_hough_creer_cercles(im_hough, seuil);
+    im_hough = modified_hough_creer_cercles(im_hough, numberCircle);
     CImgDisplay hough_cercles(im_hough, "Image de cercles");
     
 

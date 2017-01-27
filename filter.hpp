@@ -37,13 +37,11 @@ class Filter {
         ~Filter();
         int GetAngle(int, int);
         CImg<unsigned char> CannyEdges(CImg<float>, double, double, bool = false);
-         CImg<unsigned char> modified_hough_cercles(CImg<unsigned char>, int = 50, int = 70);
-         CImg<unsigned char> modified_hough_creer_cercles(CImg<unsigned char>, float);
-         void applyBresenham(CImg<unsigned char> &, int , int, int);
-         void applyBresenhamForEyeLid(CImg<unsigned char> & , tab_pix &);
-         CImg<float> modified_hough_cercles2(CImg<unsigned char>, int = 1, int = 100);
-        CImg<unsigned char> hough_cercles(CImg<unsigned char>, int);
-        CImg<unsigned char> hough_creer_cercles(CImg<unsigned char>, float, int);
+        CImg<unsigned char> modified_hough_cercles(CImg<unsigned char>, int, int);
+        CImg<unsigned char> modified_hough_creer_cercles(CImg<unsigned char>, float);
+        void applyBresenham(CImg<unsigned char> &, int , int, int);
+        void applyBresenhamForEyeLid(CImg<unsigned char> & , tab_pix &);
+
         void compute();
 
     private :
@@ -52,7 +50,8 @@ class Filter {
         double lowerThreshold;
         double upperThreshold;
         int numberCircle;
-        float radius;
+        float radius_min;
+        float radius_max;
         tab_pix* pixels;
 };
 
