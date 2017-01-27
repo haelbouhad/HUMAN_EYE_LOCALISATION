@@ -16,10 +16,10 @@
 </head>
 
 <body>
-  <h1>
+  <h1 style="text-align: center;">
     Sujet 6 - Human eye localization using the modified Hough transform
   </h1>
-  <h3>ELBOUHADI Hassan & TRAORE Ousmane</h3>
+  <h3 style="text-align: center;" >ELBOUHADI Hassan & TRAORE Ousmane</h3>
   <h1 class="titrearticle"> Présentation du sujet </h1>
 
   L'objectif du projet est d'implementer une méthode de détection des yeux et des paupières dans une image de face. <br/>
@@ -34,21 +34,39 @@
     <li>Etape 3 : Détection des yeux et des paupières avec la transformée de hough modifiée</li>
   </ul>
   <h2 class="soustitrearticle"> Partie théorique</h2>
-    Etape 1 : Filtrage Gaussien <br/>
-    Tout d'abord, on applique filtre Gaussien afin de réduire les bruits de l'image. 
-    Cette étape primordiale pour détection des contours car elle supprime les contours non utilile.
-    La valeur de la   
 
+    Etape 1 : Filtrage Gaussien <br/>
+    <p>Tout d'abord, on applique filtre Gaussien afin de réduire les bruits de l'image. 
+    Cette étape primordiale pour détection des contours car elle supprime les contours non utiles.
+    La valeur de la  variance dépend de l'image.' 
+    </p>
+
+    <br>
     Etape 2 : Detection des contours avec Canny
      <ol start="1">
        <li>Calcul de la norme et la direction du gradient en chaque point de l'image : <br>
          On applique le gradient 
        </li>
        <li>Suppression des non-maxima</li>
-       <li>seuillage par histeresis</li>
+       <li>Seuillage par histeresis</li>
      </ol>
 
   <br>
+
+      Etape 3 : Detection des cercles avec la transformée de Hough modifiée
+     <ol start="1">
+       <li>
+         Calcul de la direction angulaire des points de contours.
+       </li>
+       <li>
+         Trouver les éventuels centres des cercles par principe de vote.
+       </li>
+       <li>
+         Trouver les rayons qui vont correspondre le plus à chaque centres trouvés auparavant.
+        </li>
+     </ol>
+
+
 
   <h2 class="soustitrearticle"> Implémentation</h2>
 
