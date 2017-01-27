@@ -67,7 +67,7 @@ li {
   list-style-type: circle;
 }
 
-/*************** présentation **********/
+/*************** prï¿½sentation **********/
 div#corps { 
   margin: 0px 50px 0px 50px;
   border: 1px solid #ddcac3;
@@ -190,4 +190,16 @@ input.bouton:hover {
 
 div#acces_rapide { 
   display: none;
+}
+
+.centered {
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
+  margin: 10px auto;
+  width: 60%;
+}
+
+.trait {
+  width: 60%;
 }
