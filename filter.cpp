@@ -120,60 +120,171 @@ CImg<unsigned char> Filter::modified_hough_cercles(CImg<unsigned char> img, int 
   CImg<unsigned char> tab_cercles = CImg<unsigned char>(img.width(), img.height());
   
   angles = grad[1].get_atan2(grad[0]); // Compute atan2(y,x) for each pixel value.
-  int rayonpsi[2], cpt;
+  //int rayonpsi[2];
+  int cpt;
+  // Define pixels
   pixels = new tab_pix[img.width()*img.height()];
-  pixels->A = new float[rayon2 - rayon1];
+  for (int i = 0; i < img.width(); i++)
+    for (int j = 0; j < img.height(); j++)
+      (pixels[i+j*img.width()].Acc).insert( pair<int,int>(0,0) );
   int count = 0;
   
   for (int a = 0; a < img.width(); a++)
   for (int b = 0; b < img.height(); b++)
     if (img(a, b) != 0)
     {
-        for (int i = max(0,a-rayon2); i < min(a+rayon2, img.width()); i++)
-	 				for (int j = max(0,b-rayon2); j < min(b+rayon2, img.height()); j++){
-             for(int k = -1; k <= 1; k = k+2 ){
-                count++;
-                rayonpsi[0] = (i - a)/cos( k*M_PI/2 + angles(a,b));
-                rayonpsi[1] = (j - b)/sin( k*M_PI/2 + angles(a,b));
-                if( rayonpsi[0] == rayonpsi[1] && rayon1 <= rayonpsi[0] && rayonpsi[0] <= rayon2){
-                  cpt = i+j*img.width();
-                  pixels[cpt].val++;
-                  pixels[cpt].x = i;
-                  pixels[cpt].y = j;
-                  pixels[cpt].r = rayonpsi[0];
-                }
-             }
 
+          for(int r = rayon1; r <= rayon2; ++r){
+              for(int sign = -1; sign <= 1; sign = sign+2 ){
+                  int xc = a + r*cos(sign*M_PI/2 + angles(a,b));
+                  int yc = b + r*sin(sign*M_PI/2 + angles(a,b));
+                  cpt = xc+yc*img.width();
+                  if( 0 <= xc && xc < img.width() && 0 <= yc && yc <= img.height() && cpt <= img.width()*img.height())
+                  {
+                    pixels[cpt].val++;
+                    pixels[cpt].x = xc;
+                    pixels[cpt].y = yc;
+                    pixels[cpt].r = r;
+                    count++;
+                  }
+              }
           }
 
     }
 
+    for (int i = 0; i < img.width(); i++)
+        for (int j = 0; j < img.height(); j++)
+                tab_cercles(i,j) = pixels[i+j*img.width()].val;
+
+
+     //std::cout << "COUNT = " << count << std::endl;
+
     qsort(pixels, img.width()*img.height(), sizeof(tab_pix), (int (*)(const void*, const void*))comparator);
 
-    std::cout << "COUNT = " << count << std::endl;
-    std::cout << "MAX   = " << pixels[0].x << " - " <<  pixels[0].y << " - " << pixels[0].r << std::endl;
-    std::cout << "MAX   = " << pixels[1].x << " - " <<  pixels[1].y << " - " << pixels[1].r << std::endl;
-    std::cout << "MAX   = " << pixels[2].x << " - " <<  pixels[2].y << " - " << pixels[2].r << std::endl;
-
-    int seuil = 10;
+    /*std::cout << "COUNT = " << count << std::endl;
+    for(int i = 0; i < 10 ; ++i)
+        std::cout << "MAX   = " << pixels[i].x << " - " <<  pixels[i].y << " - " << pixels[i].val << std::endl;
+      */  
+    
+    
+    int seuil = img.width()*img.height();
     int ray_cur;
     for (int s = 0; s < (int)seuil; s++)
-		  for (int i = 0; i < img.width(); i++)
-  			for (int j = 0; j < img.height(); j++)
-  			{
-            ray_cur = (i-pixels[s].x)*(i-pixels[s].x) + (j-pixels[s].y)*(j-pixels[s].y);
-            if (ray_cur >= rayon1 && ray_cur <= rayon2)
-            {
-              cpt = i+j*img.width();
-							pixels[cpt].A[ray_cur]++;
-            }
-  			}
+        if(pixels[s].val > 1)
+            for (int i = 0; i < img.width(); i++)
+                for (int j = 0; j < img.height(); j++)
+                {
+                    if(img(i,j) != 0){
+                        ray_cur = (i-pixels[s].x)*(i-pixels[s].x) + (j-pixels[s].y)*(j-pixels[s].y);
+                        if (ray_cur >= rayon1*rayon1 && ray_cur <= rayon2*rayon2)
+                        {
+                            
+                            if ( (pixels[s].Acc).find((int)sqrt(ray_cur)) == (pixels[s].Acc).end() ) {
+                                (pixels[s].Acc).insert( std::pair<int,int>((int)sqrt(ray_cur),1));
+                            } else {
+                                pixels[s].Acc[(int)sqrt(ray_cur)]++;
+                            } 
+                            //cout << (int)sqrt(ray_cur) << endl;                
+                        }
+                    }
+                }
+
+    for (int s = 0; s < (int)seuil; s++)
+      pixels[s].r = max_array_key(pixels[s].Acc);
+
+    qsort(pixels, img.width()*img.height(), sizeof(tab_pix), (int (*)(const void*, const void*))comparator_rayon);
+
+    /*for(int i = 0; i < 100 ; ++i){
+        std::cout << "MAX   = x :" << pixels[i].x << " - y : " <<  pixels[i].y << " - val : " << pixels[i].val << endl;
+        cout << " - " << " r : " << max_array(pixels[i].Acc) << std::endl;
+    }*/
+
+    // Eyelid detection
+    int seuil2 = 2;
+	int count1 = 0;
+	int ray_eye, ray_eyelid;
+    for(int s = 0 ; s < seuil2 ; s++){
+      for(int other = seuil2; other < img.width()*img.height()/100; other++ ){
+		  if(pixels[other].y >= pixels[s].y + 1*pixels[s].r && pixels[other].y <= pixels[s].y + 3*pixels[s].r ){
+
+			  // Voisinage de l'oeil
+			  for(int i = pixels[s].x - pixels[s].r  ; i <= pixels[s].x + pixels[s].r  ; i++)
+			  	for(int j = pixels[s].y - pixels[s].r  ; j <= pixels[s].r ; j++){
+				  ray_eyelid = (i - pixels[other].x)*(i - pixels[other].x) + (j - pixels[other].y)*(j - pixels[other].y);
+				  // Appartenance à la première cercle (eyelid)
+				  if( ray_eyelid  == pixels[other].r*pixels[other].r ){
+					  ray_eye = (i - pixels[s].x)*(i - pixels[s].x) + (j - pixels[s].y)*(j - pixels[s].y);
+					  if( ray_eye == pixels[s].r*pixels[s].r ){
+						  if ( (pixels[s].AccLid).find((int)sqrt(ray_eyelid)) == (pixels[s].AccLid).end() ) {
+                                (pixels[s].AccLid).insert( std::pair<int,int>( pixels[other].y - pixels[s].y ,1));
+								cout << pixels[other].y - pixels[s].y  << endl;
+                            } else {
+                                pixels[s].AccLid[pixels[other].y - pixels[s].y]++;
+								cout << pixels[other].y - pixels[s].y  << endl;
+                         }  
+					  }
+				  }
+				}
+
+		  }
+      }
+    }
 
 
 
-    for (int i = 0; i < img.width(); i++)
-    for (int j = 0; j < img.height(); j++)
-			tab_cercles(i,j) = pixels[i+j*img.width()].val;
+
+	return tab_cercles;
+}
+
+
+void Filter::applyBresenham(CImg<unsigned char> &  img, int r, int xc, int yc){
+
+    int x,y,m;
+    x = 0;
+    y = r;
+    m = 5 - 4*r;
+    int c=0;
+    while( x <= y){
+        img( x+xc, y+yc ) = 255 ;
+        img( y+xc, x+yc ) = 255 ;
+        img( -x+xc, y+yc ) = 255 ;
+        img( -y+xc, x+yc ) = 255 ;
+        img( x+xc, -y+yc ) = 255 ;
+        img( y+xc, -x+yc ) = 255 ;
+        img( -x+xc, -y+yc ) = 255 ;
+        img( -y+xc, -x+yc ) = 255 ;
+        if(m > 0){
+            y -= 1;
+            m -= 8*y;
+        }
+        x += 1;
+        m += 8*x + 4;
+        c++;
+    }
+
+   // cout << "count = " << c << endl;
+
+}
+
+void Filter::applyBresenhamForEyeLid(CImg<unsigned char> &  img, tab_pix & pixel){
+
+	int yvalue = max_array_key(pixel.AccLid);
+	cout << yvalue << endl;
+	applyBresenham(img, yvalue + pixel.r, pixel.x, yvalue + pixel.y);
+
+}
+
+
+CImg<unsigned char> Filter::modified_hough_creer_cercles(CImg<unsigned char> img, float seuil)
+{
+    cout << "Call draw circles" << endl;
+	CImg<unsigned char> tab_cercles = CImg<unsigned char>(img.width(), img.height());
+    tab_cercles.fill(0);
+    
+	for (int s = 0; s < (int)seuil; s++){
+        pixels[s].r = max_array_key(pixels[s].Acc);
+        applyBresenham(tab_cercles, pixels[s].r, pixels[s].x, pixels[s].y);
+	}
 
 	return tab_cercles;
 }
@@ -181,16 +292,6 @@ CImg<unsigned char> Filter::modified_hough_cercles(CImg<unsigned char> img, int 
 CImg<float> Filter::modified_hough_cercles2(CImg<unsigned char> img, int rayon1, int rayon2){
   CImgList<float> grad = img.get_gradient("xy",1);
   CImg<float> angles   = CImg<float>(img.width(), img.height());
-
-  for (int i = 0; i < img.width(); i++)
-    for (int j = 0; j < img.height(); j++)
-         angles(i,j) = std::atan2((double)grad[1](i,j),(double)grad[0](i,j));
-  
-  /* Step 2 */
-  /*pixels = new tab_pix[img.width()*img.height()];
-  for (int i = 0; i < img.width(); i++)
-    for (int j = 0; j < img.height(); j++)
-      pixels[i+j*img.width()].val = 0;*/
 
   return angles;
 }
@@ -231,7 +332,7 @@ CImg<unsigned char> Filter::hough_cercles(CImg<unsigned char> img, int rayon1)
               pixels[cpt].val++;
               pixels[cpt].x = i;
               pixels[cpt].y = j;
-							pixels[cpt].r = rayon1;
+			  pixels[cpt].r = rayon1;
             }
 					/*	if (ray_cur >= ray2-50 && ray_cur <= ray2+50 && pixels[cpt].val < 255)
             {
@@ -288,8 +389,9 @@ void Filter::compute(){
     std::cout << "    > Insert sigma value (gaussian equation parameter) : " ;
     std::cin >> sigma;
 
-    CImg<float> im_gauss = image.get_RGBtoYCbCr().get_channel(0);
-    im_gauss.blur(sigma);
+    //CImg<float> im_gauss = image.get_RGBtoYCbCr().get_channel(0);
+    //im_gauss.blur(sigma);
+    CImg<float> im_gauss = image.get_blur(sigma);
     CImgDisplay gauss(im_gauss, "Image apres le filtre gaussien");
     
 
@@ -302,14 +404,13 @@ void Filter::compute(){
     std::cout << " \n 3. Hough Transform " << std::endl;
     /*std::cout << "    > Insert Number of circles (NC)  : "; std::cin >> numberCircle;
     std::cout << "    > Insert radius value : "; std::cin >> radius;*/
-    CImg<float> im_hough = modified_hough_cercles(im_canny);
+    CImg<float> im_hough = modified_hough_cercles(im_canny, 8, 12);
     CImgDisplay hough_fct(im_hough, "Image resultante de Hough");
 
-    /*CImg<float> im_hough2 = modified_hough_cercles2(im_canny);
-    CImgDisplay hough2_fct(im_hough2, "Image 2 resultante de Hough");*/
-
-   /* im_hough = hough_creer_cercles(im_hough, numberCircle, radius);
-    CImgDisplay hough_cercles(im_hough, "Image de cercles");*/
+    int seuil;
+    std::cout << "    > Insert seuil value : "; std::cin >> seuil;
+    im_hough = modified_hough_creer_cercles(im_hough, seuil);
+    CImgDisplay hough_cercles(im_hough, "Image de cercles");
     
 
 
@@ -319,15 +420,46 @@ void Filter::compute(){
 
 }
 
+
+int max_array(std::map<int, int> Acc){
+    int max = 0;
+    map<int, int>::iterator it;
+
+    for ( it = Acc.begin(); it != Acc.end(); it++ )
+    {
+        if(it->second > max)
+            max = it->second;
+    }
+
+    return max;
+}
+
+int max_array_key(std::map<int, int> & Acc){
+	//cout << "Call max_array_key" << endl;
+    int maxvalue = max_array(Acc);
+    map<int, int>::iterator it;
+    bool stop = false;
+    int maxkey;
+
+    for ( it = Acc.begin(); it != Acc.end() && !stop; it++ )
+    {
+        if(it->second == maxvalue){
+            maxkey = it->first;
+            stop = true;
+        }
+    }
+
+    return maxkey;
+}
+
 int comparator(const tab_pix* a, const tab_pix* b)
 {
 	return ((*b).val - (*a).val);
 }
 
-int max(int a, int b){
-  return ( a >= b ? a : b);
+int comparator_rayon(const tab_pix* a, const tab_pix* b)
+{
+	return (max_array((*b).Acc) - max_array((*a).Acc));
 }
 
-int min(int a, int b){
-  return ( a >= b ? b : a);
-}
+
