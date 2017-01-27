@@ -19,7 +19,7 @@
   <h1>
     Sujet 6 - Human eye localization using the modified Hough transform
   </h1>
-  <h3>ELBOUHADI Hassan & TRAORE Ousmane</h3>
+  <h3>ELBOUHADI Hassan & TRAORE Ousmane, F2</h3>
   <h1 class="titrearticle"> Présentation du sujet </h1>
 
   L'objectif du projet est d'implementer une méthode de détection des yeux et des paupières dans une image de face. <br/>
@@ -73,13 +73,13 @@
    <img src="imgdoc/image4.png" class="centered"> 
 
   <h1 class="titrearticle"> Discussion</h1>
+  
+    Le programme est capable de détecter les yeux si les rayons des yeux est inclus de rayon fournit à l'exécution. <br/>
+  Le problème majeur que nous avons rencontré pendant notre travail est l'épaisseur importante du contour détecté par Canny.
+  Nous sommes souvent contraints, pendant la méthode de Hough, d’élire plusieurs cercles (4 ou 5) au lieu de 2 pour détecter les yeux. <br/>
+  Cela est du au fait que nous n'avons pas su implémenter la suppression des non-maxima pour Canny, ce qui permet d'avoir contours d'un (1) pixel d’épaisseur ' . <b/>
 
-  Commentez vos résultats (d'un point de vue qualitatif <span style="font-weight: bold;">ET</span> quantitatif)<br>
-  Notre programme est capable de détecter les yeux à moins que les valeurs données aux rayons à trouver corresponds aux valeurs des rayons sur
-  l'image. 
-  Le problème majeur que nous avons rencontrés pendant notre travail est l'épaisseur importante du contour détecté par Canny. 
-
-
+  
   <h1 class="titrearticle"> Références</h1>
 
   [1] Human eye localization using the modified Hough transform, M. Dobeš , J. Martinek , D. Skoupil , Z. Dobešová , J. Pospı́šil, 2005 <br/>
