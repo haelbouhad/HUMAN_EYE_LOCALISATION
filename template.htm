@@ -27,15 +27,28 @@
 
   <h1 class="titrearticle"> Méthode</h1>
   Tout d'abord, l'image doit avoir la bonne taille pour que les yeux soient detectable.<br/>
-  La methode de detection est décrire comme suite  :
+  La procédure de detection est décrite comme suite:
   <ul>
-    <li>Filtrage Gaussien de l'image pour réduire les bruits</li>
-    <li>Détection des contours avec la méthode de Canny avec seuillage par hysteresis.</li>
-    <li>Détection des yeux et des paupières avec la transformée de hough modifiée</li>
+    <li>Etape 1 : Filtrage Gaussien de l'image pour réduire les bruits</li>
+    <li>Etape 2 : Détection des contours avec la méthode de Canny avec seuillage par hysteresis.</li>
+    <li>Etape 3 : Détection des yeux et des paupières avec la transformée de hough modifiée</li>
   </ul>
   <h2 class="soustitrearticle"> Partie théorique</h2>
+    Etape 1 : Filtrage Gaussien <br/>
+    Tout d'abord, on applique filtre Gaussien afin de réduire les bruits de l'image. 
+    Cette étape primordiale pour détection des contours car elle supprime les contours non utilile.
+    La valeur de la   
 
-  Présentation de la méthode utilisée et référence aux travaux connexes (cf. biblio article)<br>
+    Etape 2 : Detection des contours avec Canny
+     <ol start="1">
+       <li>Calcul de la norme et la direction du gradient en chaque point de l'image : <br>
+         On applique le gradient 
+       </li>
+       <li>Suppression des non-maxima</li>
+       <li>seuillage par histeresis</li>
+     </ol>
+
+  <br>
 
   <h2 class="soustitrearticle"> Implémentation</h2>
 
